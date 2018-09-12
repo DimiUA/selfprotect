@@ -2972,6 +2972,7 @@ function initSearchbar(){
 
 
 /* ASSET EDIT PHOTO */
+/* ASSET EDIT PHOTO */
 
 var cropper = null;
 var resImg = null;
@@ -2993,6 +2994,7 @@ function initCropper(){
     });
 
 }
+
 function getImg(){
     resImg =  cropper.getCroppedCanvas({
           width: 200,
@@ -3024,43 +3026,37 @@ function getImg(){
     }
 }   
 
-//Take pictures
-function getImage() {
-    var cmr = plus.camera.getCamera();
-    cmr.captureImage( function (p) {
-        plus.io.resolveLocalFileSystemURL( p, function ( entry ) {    
-            var localurl = entry.toLocalURL();//
-            GetBase64Code(localurl);
-        });
-    });
-}
-//Select from album
-function galleryImgs(){
-    plus.gallery.pick( function(e){
-        GetBase64Code(e.files[0]);
-    }, function ( e ) {
-        //outSet( "CANCEL SELECT" );
-    },{filter:"image",multiple:true, maximum:1});
-}
 
-function GetBase64Code(path) //image path
-{
-    var bitmap = new plus.nativeObj.Bitmap("test");
-    // load image
-    bitmap.load(path,function(){
-        var base4=bitmap.toBase64Data();        
+
+function getImage(source){
+    
+    if (!navigator.camera) {
+        alert("Camera API not supported", "Error");
         
-        mainView.router.load({
-            url: 'resources/templates/asset.edit.photo.html',
-            context: {
-                imgSrc: base4
-            }
-        });
-       
-        //console.log('IMAGEЈє'+base4);
-    },function(e){
-        //alert('ERRORЈє'+JSON.stringify(e));
-    });
-}
+    }else{
+        var options = { quality: 50,
+                        destinationType: Camera.DestinationType.DATA_URL,
+                        sourceType: source,      // 0:Photo Library, 1=Camera, 2=Saved Album
+                        encodingType: 0     // 0=JPG 1=PNG
+                      };
 
+        navigator.camera.getPicture(
+            function(imgData) {
+              //$('.media-object', this.$el).attr('src', "data:image/jpeg;base64,"+imgData);
+                mainView.router.load({
+                    url: 'resources/templates/asset.edit.photo.html',
+                    context: {
+                        imgSrc: "data:image/jpeg;base64,"+imgData
+                        //imgSrc: base4
+                    }
+                });
+            
+            },
+            function() {
+                //alert('Error taking picture', 'Error');
+            },
+            options);
+    }
+           
+}
 
