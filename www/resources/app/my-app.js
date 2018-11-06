@@ -457,6 +457,9 @@ $$('body').on('click', '.routeButton', function(){
     
 });*/
 
+
+
+
 $$('body').on('click', '#menu li', function () {
     var id = $$(this).attr('id');
 
@@ -826,6 +829,8 @@ App.onPageInit('asset', function(page) {
                 App.hidePreloader();                  
                 if(result.length > 0 || result.ERROR == "ARREARS"){
                     showNoCreditMessage();   
+                }else if(result.ERROR == "LOCKED"){
+                    showModalMessage(TargetAsset.IMEI, LANGUAGE.PROMPT_MSG054);
                 }else{ 
                     App.addNotification({
                         hold: 3000,                       
@@ -856,6 +861,8 @@ App.onPageInit('asset', function(page) {
                 App.hidePreloader();                 
                 if(result.length > 0 || result.ERROR == "ARREARS"){                       
                    showNoCreditMessage();   
+                }else if(result.ERROR == "LOCKED"){
+                    showModalMessage(TargetAsset.IMEI, LANGUAGE.PROMPT_MSG054);
                 }else{                
                    
                     App.addNotification({
@@ -1029,7 +1036,7 @@ App.onPageInit('asset.alarm', function (page) {
     var alarm = $$(page.container).find('input[name = "checkbox-alarm"]'); 
     var allCheckboxesLabel = $$(page.container).find('label.item-content');
     var allCheckboxes = allCheckboxesLabel.find('input');
-    var alarmFields = ['geolock','tilt','impact','power'];  
+    var alarmFields = ['geolock','tilt','impact','power','input','accOff','accOn'];
     
 
     alarm.on('change', function(e) { 
@@ -1221,7 +1228,7 @@ App.onPageInit('alarms.select', function (page) {
     var allCheckboxesLabel = $$(page.container).find('label.item-content');
     var allCheckboxes = allCheckboxesLabel.find('input');
     var assets = $$(page.container).find('input[name="Assets"]').val();
-    var alarmFields = ['geolock','tilt','impact','power'];     
+    var alarmFields = ['geolock','tilt','impact','power','input','accOff','accOn'];
 
     alarm.on('change', function(e) { 
         if( $$(this).prop('checked') ){
@@ -2225,6 +2232,21 @@ function showNoCreditMessage(){
     });             
 }
 
+function showModalMessage(header, body){
+    var modalTex = '<div class="color-red custom-modal-title">'+ header +'</div>' +
+                    '<div class="custom-modal-text">'+ body +'</div>';                            
+    App.modal({
+           title: '<img class="custom-modal-logo" src="resources/images/logo.png" alt=""/>',
+            text: modalTex,                                
+         buttons: [
+            {
+                text: LANGUAGE.COM_MSG31
+            },
+            
+        ]
+    });          
+}
+
 function loadPageAssetAlarm(){
     var assetList = getAssetList();
     var asset = assetList[TargetAsset.IMEI];
@@ -2249,6 +2271,18 @@ function loadPageAssetAlarm(){
         power: {
             state: true,
             val: 4,
+        },
+        input: {
+            state: true,
+            val: 131072,
+        },
+        accOff: {
+            state: true,
+            val: 65536,
+        },
+        accOn: {
+            state: true,
+            val: 32768,
         }
     };  
     if (assetAlarmVal) {
@@ -2257,7 +2291,7 @@ function loadPageAssetAlarm(){
                 alarms[key].state = false;
             }            
         });
-        if (assetAlarmVal == 17668) {
+        if (assetAlarmVal == 247044) {
             alarms.alarm.state = false;
         }
         
@@ -2270,7 +2304,10 @@ function loadPageAssetAlarm(){
             Geolock: alarms.geolock.state,
             Tilt: alarms.tilt.state,
             Impact: alarms.impact.state,                
-            Power: alarms.power.state,              
+            Power: alarms.power.state, 
+            Input: alarms.input.state,
+            AccOff: alarms.accOff.state,
+            AccOn: alarms.accOn.state,                
         }
     });
 }
@@ -2682,7 +2719,7 @@ function processClickOnPushNotification(msgJ){
         }
 
         //console.log(msg);
-        if( msg && msg.alarm == 'Status' || msg.alarm == 'status' ){            
+        if( msg && msg.alarm && msg.alarm.toLowerCase() == 'status' ){         
             loadStatusPage(msg);                               
         }else if (msg && parseFloat(msg.lat) && parseFloat(msg.lat) || msg && parseFloat(msg.Lat) && parseFloat(msg.Lat)) { 
             
